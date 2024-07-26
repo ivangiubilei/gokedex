@@ -49,6 +49,10 @@ type Pokemon struct {
 	} `json:"types"`
 }
 
+func GetOneType(p Pokemon) string {
+	return p.Types[0].Type.Name
+}
+
 func FormatTypes(p Pokemon) string {
 	ptype := "["
 	for i, v := range p.Types {
