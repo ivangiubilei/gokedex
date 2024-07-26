@@ -49,7 +49,7 @@ type Pokemon struct {
 	} `json:"types"`
 }
 
-func (p Pokemon) formatTypes() string {
+func FormatTypes(p Pokemon) string {
 	ptype := "["
 	for i, v := range p.Types {
 		if str := strings.Replace(strings.Title(v.Type.Name), "-", " ", -1); i == len(p.Types)-1 {
@@ -61,25 +61,33 @@ func (p Pokemon) formatTypes() string {
 	return ptype + "]"
 }
 
-func (p Pokemon) formatStats() string {
+func FormatStats(p Pokemon) string {
 	stats := "["
-	for _, v := range p.Stats {
+	for i, v := range p.Stats {
 		str := strings.Replace(strings.Title(v.Stat.Name), "-", " ", -1)
-		stats += fmt.Sprintf("\n\t%s: %d", str, v.BaseStat)
+		if i == len(p.Stats)-1 {
+			stats += fmt.Sprintf("%s: %d", str, v.BaseStat)
+		} else {
+			stats += fmt.Sprintf("%s: %d, ", str, v.BaseStat)
+		}
 	}
-	return stats + "\n]"
+	return stats + "]"
 }
 
-func (p Pokemon) formatMoves() string {
+func FormatMoves(p Pokemon) string {
 	moves := "["
 	for i, v := range p.Moves {
 		str := strings.Replace(strings.Title(v.Move.Name), "-", " ", -1)
-		moves += fmt.Sprintf("\n\t(%d) %s", i+1, str)
+		if i == len(p.Moves)-1 {
+			moves += fmt.Sprintf("%s", str)
+		} else {
+			moves += fmt.Sprintf("%s, ", str)
+		}
 	}
-	return moves + "\n]"
+	return moves + "]"
 }
 
-func (p Pokemon) formatAbilities() string {
+func FormatAbilities(p Pokemon) string {
 	abilities := "["
 	for i, v := range p.Abilities {
 		str := strings.Replace(strings.Title(v.Ability.Name), "-", " ", -1)
@@ -92,7 +100,7 @@ func (p Pokemon) formatAbilities() string {
 	return abilities + "]"
 }
 
-func (p Pokemon) formatGames() string {
+func FormatGames(p Pokemon) string {
 	games := "["
 	for i, v := range p.Games {
 		str := strings.Replace(strings.Title(v.Version.Name), "-", " ", -1)
@@ -106,7 +114,7 @@ func (p Pokemon) formatGames() string {
 }
 
 func (p Pokemon) String() string {
-	return fmt.Sprintf("Name: %s\nTypes: %s\nHeight: %.1fm\nWeight: %.1fkg\nAbilities: %s\nBase stats: %s \nGames: %s\nMoves: %s", p.Name, p.formatTypes(), p.Height/10, p.Weight/10, p.formatAbilities(), p.formatStats(), p.formatGames(), p.formatMoves())
+	return fmt.Sprintf("Name: %s\nTypes: %s\nHeight: %.1fm\nWeight: %.1fkg" /* \nAbilities: %s\nBase stats: %s \nGames: %s\nMoves: %s */, p.Name, FormatTypes(p), p.Height/10, p.Weight/10 /* , formatAbilities(p), formatStats(p), formatGames(p), formatMoves(p) */)
 }
 
 func GetPokemon(name string) (Pokemon, error) {
