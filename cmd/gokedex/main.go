@@ -4,6 +4,7 @@ import (
 	"fmt"
 	pokedex "gokedex/internal/http_get"
 	"os"
+	"strings"
 
 	"github.com/charmbracelet/bubbles/help"
 	"github.com/charmbracelet/bubbles/key"
@@ -16,15 +17,16 @@ import (
 var docStyle = lipgloss.NewStyle().Margin(1, 2)
 
 type model struct {
-	Styles    *ComponentStyles
-	Width     int
-	Height    int
-	List      list.Model
-	TextInput textinput.Model
-	Pokemon   pokedex.Pokemon
-	CanShow   bool
-	Help      help.Model
-	Keys      keyMap
+	ResultText string
+	Styles     *ComponentStyles
+	Width      int
+	Height     int
+	List       list.Model
+	TextInput  textinput.Model
+	Pokemon    pokedex.Pokemon
+	CanShow    bool
+	Help       help.Model
+	Keys       keyMap
 }
 
 type item struct {
@@ -74,11 +76,12 @@ func initialModel() model {
 	ti.Focus()
 
 	m := model{
-		TextInput: ti,
-		List:      list.New(items, list.NewDefaultDelegate(), 0, 0),
-		CanShow:   false,
-		Keys:      keys,
-		Help:      help.New(),
+		TextInput:  ti,
+		List:       list.New(items, list.NewDefaultDelegate(), 0, 0),
+		CanShow:    false,
+		Keys:       keys,
+		Help:       help.New(),
+		ResultText: "\n\n",
 	}
 
 	m.List.SetShowTitle(false)
@@ -151,14 +154,14 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case "ctrl+c":
 			return m, tea.Quit
 		case "enter":
-			pokemon, err := pokedex.GetPokemon(m.TextInput.Value())
+			pokemon, err := pokedex.GetPokemon(strings.ToLower(m.TextInput.Value()))
 			if err != nil {
 				m.CanShow = true
 			}
 			m.Pokemon = pokemon
 			m.CanShow = true
 			render := []list.Item{
-				item{"Name", m.Pokemon.Name},
+				item{"Name", strings.Title(m.Pokemon.Name)},
 				item{"Type(s)", pokedex.FormatTypes(m.Pokemon)},
 				item{"Weight", fmt.Sprintln(m.Pokemon.Weight/10, "kg")},
 				item{"Height", fmt.Sprintln(m.Pokemon.Height/10, "m")},
@@ -167,14 +170,21 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				item{"Moves", pokedex.FormatMoves(m.Pokemon)},
 				item{"Games", pokedex.FormatGames(m.Pokemon)},
 			}
-
 			d := list.NewDefaultDelegate()
-			c := getCorrectColor(m.Pokemon.Types[0].Type.Name)
+			var c lipgloss.Color
+			if m.Pokemon.Name != "" {
+				c = getCorrectColor(m.Pokemon.Types[0].Type.Name)
+				m.ResultText = "\n\n"
+			} else {
+				m.CanShow = false
+				m.ResultText = "\n\nPokemon not found\n\n"
+			}
 			d.Styles.SelectedTitle = d.Styles.SelectedTitle.Foreground(c).BorderLeftForeground(c)
 			d.Styles.SelectedDesc = d.Styles.SelectedTitle.Copy()
 
 			m.List.SetDelegate(d)
 			m.List.SetItems(render)
+
 		}
 	case tea.WindowSizeMsg:
 		h, v := docStyle.GetFrameSize()
@@ -195,7 +205,6 @@ type ComponentStyles struct {
 
 func (m model) View() string {
 	helpView := m.Help.View(m.Keys)
-
 	// Change colors
 	if m.CanShow {
 		return lipgloss.Place(
@@ -211,7 +220,7 @@ func (m model) View() string {
 			m.Height,
 			lipgloss.Center,
 			lipgloss.Center,
-			lipgloss.JoinVertical(lipgloss.Center, m.TextInput.View(), helpView),
+			lipgloss.JoinVertical(lipgloss.Center, m.TextInput.View(), m.ResultText, helpView),
 		)
 	}
 }
