@@ -131,11 +131,11 @@ func getCorrectColor(el string) lipgloss.Color {
 	case "rock":
 		return lipgloss.Color("#D6BD98")
 	case "ghost":
-		return lipgloss.Color("#180161")
+		return lipgloss.Color("#8C3061")
 	case "dragon":
 		return lipgloss.Color("#03346E")
 	case "dark":
-		return lipgloss.Color("#201E43")
+		return lipgloss.Color("#7C00FE")
 	case "steel":
 		return lipgloss.Color("#EEEEEE")
 	case "fairy":
