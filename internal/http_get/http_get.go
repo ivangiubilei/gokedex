@@ -54,7 +54,7 @@ func GetOneType(p Pokemon) string {
 }
 
 func FormatTypes(p Pokemon) string {
-	ptype := "["
+	ptype := ""
 	for i, v := range p.Types {
 		if str := strings.Replace(strings.Title(v.Type.Name), "-", " ", -1); i == len(p.Types)-1 {
 			ptype += fmt.Sprintf("%s", str)
@@ -62,11 +62,11 @@ func FormatTypes(p Pokemon) string {
 			ptype += fmt.Sprintf("%s, ", str)
 		}
 	}
-	return ptype + "]"
+	return ptype
 }
 
 func FormatStats(p Pokemon) string {
-	stats := "["
+	stats := ""
 	for i, v := range p.Stats {
 		str := strings.Replace(strings.Title(v.Stat.Name), "-", " ", -1)
 		if i == len(p.Stats)-1 {
@@ -75,11 +75,11 @@ func FormatStats(p Pokemon) string {
 			stats += fmt.Sprintf("%s: %d, ", str, v.BaseStat)
 		}
 	}
-	return stats + "]"
+	return stats
 }
 
 func FormatMoves(p Pokemon) string {
-	moves := "["
+	moves := ""
 	for i, v := range p.Moves {
 		str := strings.Replace(strings.Title(v.Move.Name), "-", " ", -1)
 		if i == len(p.Moves)-1 {
@@ -88,11 +88,11 @@ func FormatMoves(p Pokemon) string {
 			moves += fmt.Sprintf("%s, ", str)
 		}
 	}
-	return moves + "]"
+	return moves
 }
 
 func FormatAbilities(p Pokemon) string {
-	abilities := "["
+	abilities := ""
 	for i, v := range p.Abilities {
 		str := strings.Replace(strings.Title(v.Ability.Name), "-", " ", -1)
 		if i == len(p.Abilities)-1 {
@@ -101,11 +101,11 @@ func FormatAbilities(p Pokemon) string {
 			abilities += str + ", "
 		}
 	}
-	return abilities + "]"
+	return abilities
 }
 
 func FormatGames(p Pokemon) string {
-	games := "["
+	games := ""
 	for i, v := range p.Games {
 		str := strings.Replace(strings.Title(v.Version.Name), "-", " ", -1)
 		if i == len(p.Games)-1 {
@@ -114,7 +114,7 @@ func FormatGames(p Pokemon) string {
 			games += str + ", "
 		}
 	}
-	return games + "]"
+	return games
 }
 
 func (p Pokemon) String() string {

@@ -14,6 +14,11 @@ import (
 	"github.com/charmbracelet/lipgloss"
 )
 
+const (
+	MOVES_POSITION = iota + 6
+	GAMES_POSITION
+)
+
 var docStyle = lipgloss.NewStyle().Margin(1, 2)
 
 type model struct {
@@ -95,6 +100,7 @@ func initialModel() model {
 	m.List.SetShowStatusBar(false)
 	m.List.SetShowPagination(true)
 	m.List.SetShowHelp(false)
+	m.List.SetFilteringEnabled(false)
 
 	m.Styles = DefaultStyles()
 	return m
@@ -119,8 +125,8 @@ func (i item) String() string {
 	case "Abilities":
 		s = ""
 		str := strings.Trim(strings.ReplaceAll(strings.ReplaceAll(i.desc, " ", ""), ",", " "), "[]")
-		for _, el := range strings.Split(str, " ") {
-			s += fmt.Sprintf("%s\n", el)
+		for i, el := range strings.Split(str, " ") {
+			s += fmt.Sprintf("(%d) %s\n", i+1, el)
 		}
 
 	case "Moves":
@@ -236,6 +242,8 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 			m.Pokemon = pokemon
 			m.CanShow = true
+
+			// TODO: find a better way to display moves and games
 			render := []list.Item{
 				item{"Name", strings.Title(m.Pokemon.Name)},
 				item{"Type(s)", pokedex.FormatTypes(m.Pokemon)},
@@ -246,6 +254,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				item{"Moves", pokedex.FormatMoves(m.Pokemon)},
 				item{"Games", pokedex.FormatGames(m.Pokemon)},
 			}
+
 			d := list.NewDefaultDelegate()
 			var c lipgloss.Color
 			if m.Pokemon.Name != "" {
@@ -286,6 +295,7 @@ type ComponentStyles struct {
 func (m model) View() string {
 	helpView := m.Help.View(m.Keys)
 
+	// the ctrl+g menu
 	if m.MoreState {
 		return lipgloss.Place(
 			m.Width,
@@ -296,6 +306,7 @@ func (m model) View() string {
 		)
 	}
 
+	// to only show the list when a get request successful
 	if m.CanShow {
 		return lipgloss.Place(
 			m.Width,
@@ -318,7 +329,7 @@ func (m model) View() string {
 func main() {
 	p := tea.NewProgram(initialModel(), tea.WithAltScreen())
 	if _, err := p.Run(); err != nil {
-		fmt.Printf("Alas, there's been an error: %v", err)
+		fmt.Printf("Error found: %s", err)
 		os.Exit(1)
 	}
 }
