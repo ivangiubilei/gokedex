@@ -18,5 +18,5 @@ In a linux or MacOs terminal:
 ```
 ## Possible Changes
 1. The color of the text changes based on the type of the pokemon selected, for example serching pikachu will change the layout color to yellow, ponyta red and so on..
-However this may cause problem when selecting **Dark** type pokemon.
+However this may cause a problem when selecting **Dark** type pokemon.
 2. ~In some fields, the data is hidden or truncated due to its length. It would be nice to open a popup showing the entire content of the field.~
