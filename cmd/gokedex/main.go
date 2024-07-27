@@ -17,6 +17,7 @@ import (
 var docStyle = lipgloss.NewStyle().Margin(1, 2)
 
 type model struct {
+	MoreState  bool
 	ResultText string
 	Styles     *ComponentStyles
 	Width      int
@@ -38,9 +39,10 @@ func (i item) Description() string { return i.desc }
 func (i item) FilterValue() string { return i.title }
 
 type keyMap struct {
-	Up   key.Binding
-	Down key.Binding
-	Quit key.Binding
+	Up      key.Binding
+	Down    key.Binding
+	Quit    key.Binding
+	Options key.Binding
 }
 
 var keys = keyMap{
@@ -52,6 +54,10 @@ var keys = keyMap{
 		key.WithKeys("down"),
 		key.WithHelp("↓", "move down"),
 	),
+	Options: key.NewBinding(
+		key.WithKeys("options"),
+		key.WithHelp("ctrl+g", "more options"),
+	),
 	Quit: key.NewBinding(
 		key.WithKeys("ctrl+c"),
 		key.WithHelp("ctrl+c", "quit"),
@@ -59,7 +65,7 @@ var keys = keyMap{
 }
 
 func (k keyMap) ShortHelp() []key.Binding {
-	return []key.Binding{k.Up, k.Down, k.Quit}
+	return []key.Binding{k.Up, k.Down, k.Options, k.Quit}
 }
 
 func (k keyMap) FullHelp() [][]key.Binding {
@@ -82,6 +88,7 @@ func initialModel() model {
 		Keys:       keys,
 		Help:       help.New(),
 		ResultText: "\n\n",
+		MoreState:  false,
 	}
 
 	m.List.SetShowTitle(false)
@@ -91,6 +98,75 @@ func initialModel() model {
 
 	m.Styles = DefaultStyles()
 	return m
+}
+
+func (i item) String() string {
+	s := ""
+	switch i.title {
+	case "Stats":
+		str := strings.Trim(strings.ReplaceAll(strings.ReplaceAll(strings.ReplaceAll(i.desc, "pecial", "."), " ", ""), ":", ": "), "[]")
+		for i, el := range strings.Split(str, ",") {
+			s += fmt.Sprintf("(%d) %s\n", i+1, el)
+		}
+
+	case "Type(s)":
+		str := strings.Trim(i.desc, "[]")
+		for i, el := range strings.Split(str, ", ") {
+			s += fmt.Sprintf("(%d) %s\n", i+1, el)
+		}
+		// add data of the type
+
+	case "Abilities":
+		s = ""
+		str := strings.Trim(strings.ReplaceAll(strings.ReplaceAll(i.desc, " ", ""), ",", " "), "[]")
+		for _, el := range strings.Split(str, " ") {
+			s += fmt.Sprintf("%s\n", el)
+		}
+
+	case "Moves":
+		s = ""
+		count := strings.Count(i.desc, ", ")
+		cols := 0
+		str := strings.Trim(strings.ReplaceAll(strings.ReplaceAll(i.desc, " ", ""), ",", " "), "[]")
+
+		if count < 5 {
+			cols = 1
+		} else if count < 20 {
+			cols = 2
+		} else if count < 60 {
+			cols = 3
+		} else if count < 100 {
+			cols = 4
+		} else if count < 160 {
+			cols = 5
+		} else {
+			cols = 6
+		}
+
+		for i, el := range strings.Split(str, " ") {
+
+			if i%cols == 0 {
+				s += "\n"
+			}
+			s += fmt.Sprintf("%s  ", el)
+		}
+
+	case "Games":
+		s = ""
+		str := strings.Trim(strings.ReplaceAll(strings.ReplaceAll(i.desc, " ", ""), ",", " "), "[]")
+		for i, el := range strings.Split(str, " ") {
+			if i%2 == 0 {
+				s += "\n"
+			}
+			s += fmt.Sprintf("%s  ", el)
+		}
+	case "Name":
+		s += strings.Trim(i.desc, "[]")
+
+	default:
+		return fmt.Sprintln(i.desc)
+	}
+	return s
 }
 
 func DefaultStyles() *ComponentStyles {
@@ -184,7 +260,11 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 			m.List.SetDelegate(d)
 			m.List.SetItems(render)
-
+		case "ctrl+g":
+			if m.Pokemon.Name != "" {
+				m.MoreState = !m.MoreState
+			}
+			m.View()
 		}
 	case tea.WindowSizeMsg:
 		h, v := docStyle.GetFrameSize()
@@ -205,7 +285,17 @@ type ComponentStyles struct {
 
 func (m model) View() string {
 	helpView := m.Help.View(m.Keys)
-	// Change colors
+
+	if m.MoreState {
+		return lipgloss.Place(
+			m.Width,
+			m.Height,
+			lipgloss.Center,
+			lipgloss.Center,
+			lipgloss.JoinVertical(lipgloss.Center, fmt.Sprintln(m.List.SelectedItem())),
+		)
+	}
+
 	if m.CanShow {
 		return lipgloss.Place(
 			m.Width,
